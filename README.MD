@@ -23,6 +23,10 @@ Built as a learning project to apply React Native fundamentals in a real, publis
 - **Session history** — every completed session is saved locally and shown in a timeline
 - **Persistent preferences** — default duration is remembered between sessions
 - **Auto-reset** — timer resets automatically 2 seconds after completion
+- **Push notifications** — notifies when session completes, even with screen locked
+- **Weekly statistics** — bar chart showing sessions per day of the week
+- **Daily goal** — set a target number of sessions per day with a progress bar
+- **Streak** — tracks consecutive days with at least one completed session
 - **Offline-first** — all data lives on device via AsyncStorage, no internet required
 
 ---
@@ -116,12 +120,15 @@ Tests: 6 passed
 
 ## Roadmap
 
+- [x] Push notifications when session completes
+- [x] Statistics screen with weekly chart
+- [x] Daily goal with progress tracking
+- [x] Streak counter
 - [ ] Supabase integration for cross-device sync
-- [ ] Push notifications when session completes
-- [ ] Statistics screen with weekly/monthly charts
 - [ ] Custom session categories (deep work, reading, exercise)
+- [ ] Sound themes (rain, forest, café)
+- [ ] Home screen widget
 - [ ] Google Play release
-
 ---
 
 ## What I learned
