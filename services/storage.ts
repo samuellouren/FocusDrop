@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '../types/session';
-import { CHAVE_SESSOES } from '../constants/keys';
+import { CHAVE_SESSOES,  CHAVE_META_DIARIA} from '../constants/keys';
 
 
 export async function salvarSessao(duracao:number): Promise<Session> {
@@ -21,4 +21,50 @@ export async function buscarSessoes(): Promise<Session[]> {
   const dados = await AsyncStorage.getItem(CHAVE_SESSOES);
   if (!dados) return [];
   return JSON.parse(dados);
+}
+
+export async function buscarMetaDiaria(): Promise<number> {
+    const valor = await AsyncStorage.getItem(CHAVE_META_DIARIA);
+    return valor ? Number(valor) : 4;
+}
+
+export async function salvarMetaDiaria(meta: number): Promise<void> {
+  await AsyncStorage.setItem(CHAVE_META_DIARIA, String(meta));
+}
+
+export function calcularStreak(sessoes: Session[]): number {
+  if (sessoes.length === 0) return 0;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  let streak = 0;
+  let diaVerificando = new Date(hoje);
+
+  while (true) {
+    // verifica se tem alguma sessão nesse dia
+    const temSessao = sessoes.some(s => {
+      const data = new Date(s.completedAt);
+      data.setHours(0, 0, 0, 0);
+      return data.getTime() === diaVerificando.getTime();
+    });
+
+    if (!temSessao) break;
+
+    streak++;
+    diaVerificando.setDate(diaVerificando.getDate() - 1);
+  }
+
+  return streak;
+}
+
+export function sessoesHoje(sessoes: Session[]): number {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  return sessoes.filter(s => {
+    const data = new Date(s.completedAt);
+    data.setHours(0, 0, 0, 0);
+    return data.getTime() === hoje.getTime();
+  }).length;
 }

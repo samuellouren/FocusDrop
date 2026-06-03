@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.samuellourenco25.focusdrop",
+      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE"],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { salvarSessao } from '../services/storage';
+import { notificarSessaoCompleta, pedirPermissao } from '../services/notifications';
 
 export function useTimer(initialSeconds: number) {
   const [seconds, setSeconds] = useState(initialSeconds);
@@ -22,6 +23,8 @@ export function useTimer(initialSeconds: number) {
           salvarSessao(initialSeconds)
             .then(() => console.log('sessão salva:', initialSeconds))
             .catch(err => console.error('erro ao salvar:', err));
+          notificarSessaoCompleta(Math.floor(initialSeconds / 60))
+            .catch(err => console.error('erro na notificação:', err));
           return 0;
         }
         return prev - 1;

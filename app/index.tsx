@@ -1,11 +1,12 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTimer } from '../hooks/useTimer';
 import { CHAVE_DURACAO_PADRAO } from '../constants/keys';
 import { TimerRing } from '../components/ui/TimerRing';
+import { pedirPermissao } from '../services/notifications';
 
 const DURATIONS = [1, 5, 10, 25, 50];
 
@@ -20,10 +21,13 @@ export default function FocusScreen() {
             });
         }, [])
     );
+    useEffect(() => {
+        pedirPermissao();
+    }, []);
 
     const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  const display = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    const secs = seconds % 60;
+    const display = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     
     return (
         <View style={styles.container}>

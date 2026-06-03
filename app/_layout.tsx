@@ -11,6 +11,7 @@ export default function Layout() {
             }}
         >
             <Tabs.Screen name='index' options={{ title: 'Foco'}} />
+            <Tabs.Screen name="estatisticas" options={{ title: 'Stats' }} />
             <Tabs.Screen name='historico' options={{title: 'Histórico'}} />
             <Tabs.Screen name="configuracoes" options={{ title: 'Config' }} />
         </Tabs>
