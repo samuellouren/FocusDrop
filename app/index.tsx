@@ -65,10 +65,10 @@ export default function TelaFoco() {
     setConfig({
       tecnica,
       horasFoco:    Number(hf) || 0,
-      minutosFoco:  Number(mf) || 25,
+      minutosFoco:  mf === '' ? 25 : Number(mf),
       segundosFoco: Number(sf) || 0,
       horasParusa:  tecnica === 'pomodoro' ? (Number(hp) || 0) : 0,
-      minutosParao: tecnica === 'pomodoro' ? (Number(mp) || 5) : 0,
+      minutosParao: tecnica === 'pomodoro' ? (mp === '' ? 5 : Number(mp)) : 0,
       segundosPausa: tecnica === 'pomodoro' ? (Number(sp) || 0) : 0,
     });
   }
@@ -115,34 +115,31 @@ export default function TelaFoco() {
             <TextInput
               style={styles.input}
               value={horasFoco}
-              onChangeText={setHorasFoco}
+              onChangeText={v => { setHorasFoco(v); aplicarTempo(tecnicaSelecionada, v, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa); }}
               keyboardType="number-pad"
               maxLength={2}
               placeholder="0"
               placeholderTextColor="#333"
-              onBlur={() => aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa)}
             />
             <Text style={styles.inputSeparador}>h</Text>
             <TextInput
               style={styles.input}
               value={minutosFoco}
-              onChangeText={setMinutosFoco}
+              onChangeText={v => { setMinutosFoco(v); aplicarTempo(tecnicaSelecionada, horasFoco, v, segundosFoco, horasPausa, minutosPausa, segundosPausa); }}
               keyboardType="number-pad"
               maxLength={2}
               placeholder="25"
               placeholderTextColor="#333"
-              onBlur={() => aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa)}
             />
             <Text style={styles.inputSeparador}>m</Text>
             <TextInput
               style={styles.input}
               value={segundosFoco}
-              onChangeText={setSegundosFoco}
+              onChangeText={v => { setSegundosFoco(v); aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, v, horasPausa, minutosPausa, segundosPausa); }}
               keyboardType="number-pad"
               maxLength={2}
               placeholder="0"
               placeholderTextColor="#333"
-              onBlur={() => aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa)}
             />
             <Text style={styles.inputSeparador}>s</Text>
           </View>
@@ -155,34 +152,31 @@ export default function TelaFoco() {
               <TextInput
                 style={styles.input}
                 value={horasPausa}
-                onChangeText={setHorasPausa}
+                onChangeText={v => { setHorasPausa(v); aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, v, minutosPausa, segundosPausa); }}
                 keyboardType="number-pad"
                 maxLength={2}
                 placeholder="0"
                 placeholderTextColor="#333"
-                onBlur={() => aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa)}
               />
               <Text style={styles.inputSeparador}>h</Text>
               <TextInput
                 style={styles.input}
                 value={minutosPausa}
-                onChangeText={setMinutosPausa}
+                onChangeText={v => { setMinutosPausa(v); aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, v, segundosPausa); }}
                 keyboardType="number-pad"
                 maxLength={2}
                 placeholder="5"
                 placeholderTextColor="#333"
-                onBlur={() => aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa)}
               />
               <Text style={styles.inputSeparador}>m</Text>
               <TextInput
                 style={styles.input}
                 value={segundosPausa}
-                onChangeText={setSegundosPausa}
+                onChangeText={v => { setSegundosPausa(v); aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, v); }}
                 keyboardType="number-pad"
                 maxLength={2}
                 placeholder="0"
                 placeholderTextColor="#333"
-                onBlur={() => aplicarTempo(tecnicaSelecionada, horasFoco, minutosFoco, segundosFoco, horasPausa, minutosPausa, segundosPausa)}
               />
               <Text style={styles.inputSeparador}>s</Text>
             </View>
