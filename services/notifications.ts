@@ -1,4 +1,6 @@
 import * as Notifications from 'expo-notifications'
+import { Platform } from 'react-native';
+
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -16,12 +18,13 @@ export async function pedirPermissao(): Promise<boolean> {
 }
 
 export async function notificarSessaoCompleta(minutos: number): Promise<void> {
-    await Notifications.scheduleNotificationAsync({
-        content: {
-            title: 'Sessao completa!!',
-            body: `Você completou ${minutos} minutos de foco. bom trabalho!!`,
-            sound: true,
-        },
-        trigger: null,
-    });
+  if (Platform.OS === 'web') return;
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Sessao completa!!',
+      body: `Você completou ${minutos} minutos de foco. bom trabalho!!`,
+      sound: true,
+    },
+    trigger: null,
+  });
 }

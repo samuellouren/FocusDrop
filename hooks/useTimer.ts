@@ -21,7 +21,6 @@ export function useTimer(initialSeconds: number) {
           clearInterval(interval);
           setIsRunning(false);
           salvarSessao(initialSeconds)
-            .then(() => console.log('sessão salva:', initialSeconds))
             .catch(err => console.error('erro ao salvar:', err));
           notificarSessaoCompleta(Math.floor(initialSeconds / 60))
             .catch(err => console.error('erro na notificação:', err));
@@ -36,10 +35,9 @@ export function useTimer(initialSeconds: number) {
 
   useEffect(() => {
   if (seconds === 0 && !isRunning) {
-    // pequeno delay para o usuário ver o 00:00 antes de resetar
     const timeout = setTimeout(() => {
       setSeconds(initialSeconds);
-    }, 2000); // 2 segundos de pausa antes de resetar
+    }, 2000);
 
     return () => clearTimeout(timeout);
   }

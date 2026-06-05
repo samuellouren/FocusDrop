@@ -1,41 +1,40 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { buscarSessoes, calcularStreak, sessoesHoje, buscarMetaDiaria, salvarMetaDiaria } from '../services/storage';
+import { buscarSessoes, calcularStreak, minutosHoje, buscarMetaMinutos } from '../services/storage';
+import { humoresDaSemana } from '../services/humor';
 import { Session } from '../types/session';
+import { Humor } from '../types/rotina';
 
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-const METAS = [2, 4, 6, 8];
 
 export default function TelaEstatisticas() {
   const [sessoesPorDia, setSessoesPorDia] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [totalSemana, setTotalSemana] = useState(0);
-  const [melhorDia, setMelhorDia] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [meta, setMeta] = useState(4);
-  const [hoje, setHoje] = useState(0);
+  const [minutosDeHoje, setMinutosDeHoje] = useState(0);
+  const [metaMinutos, setMetaMinutos] = useState(120);
+  const [humores, setHumores] = useState<Humor[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([buscarSessoes(), buscarMetaDiaria()]).then(([sessoes, metaSalva]) => {
-        calcularTudo(sessoes, metaSalva);
-      });
+      Promise.all([buscarSessoes(), buscarMetaMinutos(), humoresDaSemana()])
+        .then(([sessoes, meta, h]) => {
+          calcularTudo(sessoes, meta);
+          setHumores(h);
+        });
     }, [])
   );
 
-  function calcularTudo(sessoes: Session[], metaSalva: number) {
-    // estatísticas da semana
+  function calcularTudo(sessoes: Session[], meta: number) {
     const agora = new Date();
     const inicioSemana = new Date(agora);
     inicioSemana.setDate(agora.getDate() - agora.getDay());
     inicioSemana.setHours(0, 0, 0, 0);
 
-    const sessoesSemana = sessoes.filter(s =>
-      new Date(s.completedAt) >= inicioSemana
-    );
-
+    const sessoesSemana = sessoes.filter(s => new Date(s.completedAt) >= inicioSemana);
     const contagem = [0, 0, 0, 0, 0, 0, 0];
     sessoesSemana.forEach(s => {
       const dia = new Date(s.completedAt).getDay();
@@ -44,67 +43,47 @@ export default function TelaEstatisticas() {
 
     setSessoesPorDia(contagem);
     setTotalSemana(sessoesSemana.length);
-    setMelhorDia(Math.max(...contagem));
     setStreak(calcularStreak(sessoes));
-    setHoje(sessoesHoje(sessoes));
-    setMeta(metaSalva);
+    setMinutosDeHoje(minutosHoje(sessoes));
+    setMetaMinutos(meta);
   }
 
-  async function alterarMeta(novaMeta: number) {
-    setMeta(novaMeta);
-    await salvarMetaDiaria(novaMeta);
-  }
+  const metaConcluida = minutosDeHoje >= metaMinutos;
+  const progressoMeta = metaMinutos > 0 ? Math.min(minutosDeHoje / metaMinutos, 1) : 0;
 
-  // progresso da meta de hoje: 0.0 a 1.0
-  const progressoMeta = meta > 0 ? Math.min(hoje / meta, 1) : 0;
-  const metaConcluida = hoje >= meta;
+  function formatarMinutos(minutos: number) {
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    if (h === 0) return `${m}min`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}min`;
+  }
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.titulo}>Estatísticas</Text>
 
-      {/* streak e meta hoje */}
       <View style={styles.cards}>
         <View style={styles.card}>
           <Text style={styles.cardValor}>{streak} 🔥</Text>
           <Text style={styles.cardLabel}>dias seguidos</Text>
         </View>
         <View style={[styles.card, metaConcluida && styles.cardDestaque]}>
-          <Text style={styles.cardValor}>{hoje}/{meta}</Text>
-          <Text style={styles.cardLabel}>meta de hoje</Text>
-          {/* barra de progresso da meta */}
+          <Text style={styles.cardValor}>{formatarMinutos(minutosDeHoje)}</Text>
+          <Text style={styles.cardLabel}>de {formatarMinutos(metaMinutos)} hoje</Text>
           <View style={styles.progressoFundo}>
             <View style={[styles.progressoBarra, { width: `${progressoMeta * 100}%` as any }]} />
           </View>
         </View>
       </View>
 
-      {/* seletor de meta diária */}
-      <Text style={styles.secaoTitulo}>Meta diária</Text>
-      <View style={styles.metaOpcoes}>
-        {METAS.map(m => (
-          <TouchableOpacity
-            key={m}
-            style={[styles.metaOpcao, meta === m && styles.metaOpcaoAtiva]}
-            onPress={() => alterarMeta(m)}
-          >
-            <Text style={[styles.metaTexto, meta === m && styles.metaTextoAtivo]}>
-              {m}x
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* gráfico semanal */}
       <Text style={styles.secaoTitulo}>Esta semana</Text>
       {totalSemana > 0 ? (
         <View style={styles.graficoContainer}>
           <BarChart
             data={{ labels: DIAS, datasets: [{ data: sessoesPorDia }] }}
-            width={340}
-            height={200}
-            yAxisLabel=""
-            yAxisSuffix=""
+            width={340} height={200}
+            yAxisLabel="" yAxisSuffix=""
             chartConfig={{
               backgroundColor: '#0f0f0f',
               backgroundGradientFrom: '#0f0f0f',
@@ -123,7 +102,6 @@ export default function TelaEstatisticas() {
         <Text style={styles.vazio}>Complete uma sessão para ver o gráfico.</Text>
       )}
 
-      {/* dias ativos */}
       <Text style={styles.secaoTitulo}>Dias ativos</Text>
       <View style={styles.diasContainer}>
         {DIAS.map((dia, index) => (
@@ -140,6 +118,21 @@ export default function TelaEstatisticas() {
         ))}
       </View>
 
+      {humores.length > 0 && (
+        <>
+          <Text style={styles.secaoTitulo}>Humor da semana</Text>
+          <View style={styles.humorSemana}>
+            {humores.map(h => (
+              <View key={h.id} style={styles.humorItem}>
+                <Text style={styles.humorEmoji}>{h.emoji}</Text>
+                <Text style={styles.humorData}>
+                  {new Date(h.criadoEm).toLocaleDateString('pt-BR', { weekday: 'short' })}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -155,11 +148,6 @@ const styles = StyleSheet.create({
   progressoFundo:   { width: '100%', height: 3, backgroundColor: '#1a1a1a', borderRadius: 2 },
   progressoBarra:   { height: 3, backgroundColor: '#fff', borderRadius: 2 },
   secaoTitulo:      { fontSize: 11, color: '#555', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  metaOpcoes:       { flexDirection: 'row', gap: 10, marginBottom: 32 },
-  metaOpcao:        { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: '#222' },
-  metaOpcaoAtiva:   { borderColor: '#fff', backgroundColor: '#1a1a1a' },
-  metaTexto:        { color: '#444', fontSize: 15 },
-  metaTextoAtivo:   { color: '#fff' },
   graficoContainer: { marginBottom: 32, alignItems: 'center' },
   vazio:            { color: '#333', fontSize: 14, textAlign: 'center', marginTop: 20, marginBottom: 32 },
   diasContainer:    { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
@@ -169,4 +157,8 @@ const styles = StyleSheet.create({
   diaTexto:         { fontSize: 10, color: '#444' },
   diaTextoAtivo:    { color: '#000' },
   diaContagem:      { fontSize: 11, color: '#555', height: 16 },
+  humorSemana:      { flexDirection: 'row', gap: 16, marginBottom: 40, flexWrap: 'wrap' },
+  humorItem:        { alignItems: 'center', gap: 4 },
+  humorEmoji:       { fontSize: 28 },
+  humorData:        { fontSize: 11, color: '#555' },
 });
