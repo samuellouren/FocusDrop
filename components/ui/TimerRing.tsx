@@ -22,7 +22,7 @@ export function TimerRing({ seconds, totalSeconds, size = 280, cor = '#ffffff' }
                 cx={size/2}
                 cy={size/2}
                 r={raio}
-                stroke="1a1a1a"
+                stroke="#1a1a1a"
                 strokeWidth={espessura}
                 fill="none"
             />

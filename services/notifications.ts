@@ -21,8 +21,8 @@ export async function notificarSessaoCompleta(minutos: number): Promise<void> {
   if (Platform.OS === 'web') return;
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Sessao completa!!',
-      body: `Você completou ${minutos} minutos de foco. bom trabalho!!`,
+      title: 'Sessão completa!',
+      body: `Você completou ${minutos} minutos de foco. Bom trabalho!`,
       sound: true,
     },
     trigger: null,

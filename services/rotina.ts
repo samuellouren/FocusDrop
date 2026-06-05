@@ -24,14 +24,6 @@ export async function aplicarModelosNoDia(data: string): Promise<void> {
   await AsyncStorage.setItem(CHAVE_ATIVIDADES, JSON.stringify(atualizadas));
 }
 
-export type Humor = {
-  id: string;
-  emoji: string;
-  label: string;
-  data: string; // YYYY-MM-DD
-  criadoEm: string;
-};
-
 // retorna todas as atividades
 export async function buscarAtividades(): Promise<Atividade[]> {
   const dados = await AsyncStorage.getItem(CHAVE_ATIVIDADES);

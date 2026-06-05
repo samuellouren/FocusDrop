@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   inputGrupo:         { alignItems: 'center', gap: 6 },
   inputLabel:         { fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: 1 },
   inputRow:           { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  input:              { width: 44, height: 44, backgroundColor: '#111', borderRadius: 8, borderWidth: 1, borderColor: '#222', color: '#fff', fontSize: 18, textAlign: 'center' },
+  input:              { width: 44, height: 44, backgroundColor: '#111', borderRadius: 8, borderWidth: 1, borderColor: '#222', color: '#fff', fontSize: 18, textAlign: 'center', textAlignVertical: 'center' },
   inputSeparador:     { color: '#333', fontSize: 16 },
   cicloInfo:          { marginBottom: 16 },
   cicloTexto:         { color: '#555', fontSize: 13 },

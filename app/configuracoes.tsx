@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Switch, ScrollView  } from 'r
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { CHAVE_DURACAO_PADRAO } from '../constants/keys';
+import { CHAVE_DURACAO_PADRAO, CHAVE_VIBRAR } from '../constants/keys';
 import { TECNICAS } from '../hooks/useCycle';
 import { Tecnica } from '../types/session';
 import { salvarMetaMinutos, buscarMetaMinutos } from '../services/storage';
@@ -32,6 +32,9 @@ export default function TelaConfiguracoes() {
         if (valor && valor in TECNICAS) setTecnicaPadrao(valor as Tecnica);
       });
       buscarMetaMinutos().then(setMetaMinutos);
+      AsyncStorage.getItem(CHAVE_VIBRAR).then(valor => {
+        if (valor !== null) setVibrar(valor === 'true');
+      });
     }, [])
   );
 
@@ -93,7 +96,7 @@ export default function TelaConfiguracoes() {
       </View>
       <Switch
         value={vibrar}
-        onValueChange={setVibrar}
+        onValueChange={v => { setVibrar(v); AsyncStorage.setItem(CHAVE_VIBRAR, String(v)); }}
         trackColor={{ false: '#1a1a1a', true: '#fff' }}
         thumbColor={vibrar ? '#000' : '#333'}
       />

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~56.0.8",
     "expo-background-fetch": "~56.0.16",
@@ -54,7 +55,9 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": ["expo-modules-jsi"]
+        "exclude": [
+          "expo-modules-jsi"
+        ]
       }
     }
   },

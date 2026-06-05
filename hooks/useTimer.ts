@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { salvarSessao } from '../services/storage';
-import { notificarSessaoCompleta, pedirPermissao } from '../services/notifications';
+import { notificarSessaoCompleta } from '../services/notifications';
 
 export function useTimer(initialSeconds: number) {
   const [seconds, setSeconds] = useState(initialSeconds);

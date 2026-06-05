@@ -91,8 +91,8 @@ export default function TelaAtividade() {
     setNovaEtapaTemTimer(false);
   }
 
-  function removerEtapa(id: string) {
-    setEtapas(prev => prev.filter(e => e.id !== id));
+  function removerEtapa(etapaId: string) {
+    setEtapas(prev => prev.filter(e => e.id !== etapaId));
   }
 
   async function handleSalvar() {
