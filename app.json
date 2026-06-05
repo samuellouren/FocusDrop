@@ -12,7 +12,10 @@
     },
     "android": {
       "package": "com.samuellourenco25.focusdrop",
-      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE"],
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,7 +29,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-font"
     ],
     "extra": {
       "router": {},
