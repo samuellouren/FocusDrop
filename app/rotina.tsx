@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { useFocusEffect, router } from 'expo-router';
-import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { buscarAtividadesDoDia, deletarAtividade, atualizarAtividade, formatarData, diasDaSemana, aplicarModelosNoDia } from '../services/rotina';
 import { humorDeHoje } from '../services/humor';
 import { Atividade, Humor } from '../types/rotina';
@@ -38,22 +36,16 @@ export default function TelaRotina() {
   );
 
   async function carregarAtividades(data: string) {
+    console.log('[Rotina] carregarAtividades chamado para data:', data);
     await aplicarModelosNoDia(data);
     const lista = await buscarAtividadesDoDia(data);
+    console.log('[Rotina] atividades encontradas:', lista.length, JSON.stringify(lista.map(a => ({ id: a.id, data: a.data, titulo: a.titulo }))));
     setAtividades(lista);
     if (data === hoje) {
       const h = await humorDeHoje();
       setHumor(h);
     } else {
       setHumor(null);
-    }
-  }
-
-  async function handleReordenar(novaOrdem: Atividade[]) {
-    const atualizadas = novaOrdem.map((a, i) => ({ ...a, ordem: i }));
-    setAtividades(atualizadas);
-    for (const a of atualizadas) {
-      await atualizarAtividade(a.id, { ordem: a.ordem });
     }
   }
 
@@ -91,9 +83,6 @@ export default function TelaRotina() {
       <>
         <View style={styles.atividadeCardLinha}>
           <View style={styles.atividadeInfo}>
-            {!item.concluida && Platform.OS !== 'web' && (
-              <Text style={styles.dragHandle}>⠿</Text>
-            )}
             <View style={[styles.atividadeDot, item.concluida && styles.atividadeDotConcluida]} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.atividadeTitulo, item.concluida && styles.atividadeTituloConcluido]}>
@@ -174,26 +163,6 @@ export default function TelaRotina() {
     }
   }
 
-  // renderItem para DraggableFlatList (nativo)
-  const renderItem = ({ item, drag, isActive }: RenderItemParams<Atividade>) => (
-    <ScaleDecorator>
-      <TouchableOpacity
-        style={[
-          styles.atividadeCard,
-          item.concluida && styles.atividadeCardConcluida,
-          isActive && styles.atividadeCardArrastando,
-          atividadeExpandida === item.id && styles.atividadeCardExpandido,
-        ]}
-        onPress={() => handlePressCard(item)}
-        onLongPress={() => item.concluida ? handleLongPress(item) : drag()}
-        delayLongPress={200}
-      >
-        {renderConteudoCard(item)}
-      </TouchableOpacity>
-    </ScaleDecorator>
-  );
-
-  // renderItem para FlatList (web)
   const renderItemWeb = ({ item }: { item: Atividade }) => (
     <TouchableOpacity
       style={[
@@ -214,8 +183,7 @@ export default function TelaRotina() {
   const listaData = [...atividadesPendentes, ...atividadesConcluidas];
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
+    <View style={styles.container}>
         <Text style={styles.titulo}>Rotina</Text>
 
         <View style={styles.calendario}>
@@ -245,30 +213,16 @@ export default function TelaRotina() {
           <Text style={styles.secaoLabel}>{atividadesConcluidas.length} concluída(s)</Text>
         )}
 
-        {Platform.OS === 'web' ? (
-          <FlatList
-            data={listaData}
-            keyExtractor={item => item.id}
-            renderItem={renderItemWeb}
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.lista}
-            ListEmptyComponent={
-              <Text style={styles.vazio}>Nenhuma atividade para este dia.{'\n'}Toque em + para adicionar.</Text>
-            }
-          />
-        ) : (
-          <DraggableFlatList
-            data={listaData}
-            keyExtractor={item => item.id}
-            renderItem={renderItem}
-            onDragEnd={({ data }) => handleReordenar(data)}
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.lista}
-            ListEmptyComponent={
-              <Text style={styles.vazio}>Nenhuma atividade para este dia.{'\n'}Toque em + para adicionar.</Text>
-            }
-          />
-        )}
+        <FlatList
+          data={listaData}
+          keyExtractor={item => item.id}
+          renderItem={renderItemWeb}
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.lista}
+          ListEmptyComponent={
+            <Text style={styles.vazio}>Nenhuma atividade para este dia.{'\n'}Toque em + para adicionar.</Text>
+          }
+        />
 
         <TouchableOpacity
           style={styles.btnAdicionar}
@@ -277,7 +231,6 @@ export default function TelaRotina() {
           <Text style={styles.btnAdicionarTexto}>+</Text>
         </TouchableOpacity>
       </View>
-    </GestureHandlerRootView>
   );
 }
 

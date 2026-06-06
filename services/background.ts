@@ -1,11 +1,14 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 export const TIMER_TASK = 'FOCUSDROP_TIMER_TASK';
 
 export async function iniciarNotificacaoPersistente(segundosRestantes: number, ciclo: 'foco' | 'pausa'): Promise<string> {
-  if (Platform.OS === 'web') return '';  // ← ignora no browser
+  if (isExpoGo || Platform.OS === 'web') return '';
 
+  const Notifications = require('expo-notifications');
   await Notifications.dismissAllNotificationsAsync();
   const mins = Math.floor(segundosRestantes / 60);
   const segs = segundosRestantes % 60;
@@ -29,8 +32,9 @@ export async function atualizarNotificacaoPersistente(
   segundosRestantes: number,
   ciclo: 'foco' | 'pausa'
 ): Promise<void> {
-  if (Platform.OS === 'web') return;  // ← ignora no browser
+  if (isExpoGo || Platform.OS === 'web') return;
 
+  const Notifications = require('expo-notifications');
   const mins = Math.floor(segundosRestantes / 60);
   const segs = segundosRestantes % 60;
   const display = `${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
@@ -48,6 +52,7 @@ export async function atualizarNotificacaoPersistente(
 }
 
 export async function cancelarNotificacaoPersistente(): Promise<void> {
-  if (Platform.OS === 'web') return;  // ← ignora no browser
+  if (isExpoGo || Platform.OS === 'web') return;
+  const Notifications = require('expo-notifications');
   await Notifications.dismissAllNotificationsAsync();
 }

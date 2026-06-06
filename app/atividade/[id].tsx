@@ -110,6 +110,7 @@ export default function TelaAtividade() {
         etapas: etapas.length > 0 ? etapas : undefined,
       });
     } else {
+      console.log('[Atividade] params recebidos → id:', id, 'data:', data, 'ordem:', ordem);
       const novaAtividade: Atividade = {
         id: Date.now().toString(),
         titulo: titulo.trim(),
@@ -123,9 +124,11 @@ export default function TelaAtividade() {
         ehModelo,
         etapas: etapas.length > 0 ? etapas : undefined,
       };
+      console.log('[Atividade] salvando:', JSON.stringify({ id: novaAtividade.id, data: novaAtividade.data, titulo: novaAtividade.titulo }));
       await salvarAtividade(novaAtividade);
+      console.log('[Atividade] salvo com sucesso');
     }
-    router.back();
+    router.navigate('/rotina');
   }
 
   async function handleConcluir() {
@@ -289,7 +292,7 @@ export default function TelaAtividade() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={[styles.botao, styles.botaoPrimario, { marginTop: 32, marginBottom: 60 }]} onPress={handleSalvar}>
+      <TouchableOpacity style={[styles.botao, styles.botaoPrimario, { marginTop: 32, marginBottom: 60, marginHorizontal: 24 }]} onPress={handleSalvar}>
         <Text style={[styles.textoBotao, styles.textoBotaoPrimario]}>{isEditar ? 'Salvar alterações' : 'Salvar atividade'}</Text>
       </TouchableOpacity>
     </ScrollView>

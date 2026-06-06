@@ -1,24 +1,31 @@
-import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
-Notifications.setNotificationHandler({
+if (!isExpoGo && Platform.OS !== 'web') {
+  const Notifications = require('expo-notifications');
+  Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
     }),
-});
+  });
+}
 
 export async function pedirPermissao(): Promise<boolean> {
-    const {status} = await Notifications.requestPermissionsAsync();
-    return status === 'granted';
+  if (isExpoGo || Platform.OS === 'web') return false;
+  const Notifications = require('expo-notifications');
+  const { status } = await Notifications.requestPermissionsAsync();
+  return status === 'granted';
 }
 
 export async function notificarSessaoCompleta(minutos: number): Promise<void> {
-  if (Platform.OS === 'web') return;
+  if (isExpoGo || Platform.OS === 'web') return;
+  const Notifications = require('expo-notifications');
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Sessão completa!',
