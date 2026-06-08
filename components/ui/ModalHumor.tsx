@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { humorDeHoje, salvarHumor, OPCOES_HUMOR } from '../../services/humor';
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 export function ModalHumor() {
   const [visivel, setVisivel] = useState(false);
   const [selecionado, setSelecionado] = useState<string | null>(null);
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useEffect(() => {
     verificarHumor();
@@ -12,13 +17,13 @@ export function ModalHumor() {
 
   async function verificarHumor() {
     const hoje = await humorDeHoje();
-    if (!hoje) setVisivel(true); // só mostra se não registrou hoje
+    if (!hoje) setVisivel(true);
   }
 
   async function handleSelecionar(emoji: string, label: string) {
     setSelecionado(emoji);
     await salvarHumor(emoji, label);
-    setTimeout(() => setVisivel(false), 800); // fecha após 800ms para o usuário ver a seleção
+    setTimeout(() => setVisivel(false), 800);
   }
 
   return (
@@ -50,16 +55,18 @@ export function ModalHumor() {
   );
 }
 
-const styles = StyleSheet.create({
-  overlay:          { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  card:             { backgroundColor: '#111', borderRadius: 20, padding: 28, width: '100%', borderWidth: 1, borderColor: '#1a1a1a' },
-  titulo:           { fontSize: 22, fontWeight: '300', color: '#fff', textAlign: 'center', marginBottom: 8 },
-  subtitulo:        { fontSize: 13, color: '#555', textAlign: 'center', marginBottom: 32, lineHeight: 20 },
-  opcoes:           { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-  opcao:            { alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#1a1a1a', flex: 1, marginHorizontal: 4 },
-  opcaoSelecionada: { borderColor: '#fff', backgroundColor: '#1a1a1a' },
-  emoji:            { fontSize: 28, marginBottom: 6 },
-  label:            { fontSize: 11, color: '#555' },
-  btnPular:         { alignItems: 'center', padding: 12 },
-  btnPularTexto:    { color: '#333', fontSize: 13 },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    overlay:          { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+    card:             { backgroundColor: t.card, borderRadius: 20, padding: 28, width: '100%', borderWidth: 1, borderColor: t.border },
+    titulo:           { fontSize: 22, fontWeight: '300', color: t.textPrimary, textAlign: 'center', marginBottom: 8 },
+    subtitulo:        { fontSize: 13, color: t.textMuted, textAlign: 'center', marginBottom: 32, lineHeight: 20 },
+    opcoes:           { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
+    opcao:            { alignItems: 'center', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: t.border, flex: 1, marginHorizontal: 4 },
+    opcaoSelecionada: { borderColor: t.textPrimary, backgroundColor: t.activeBg },
+    emoji:            { fontSize: 28, marginBottom: 6 },
+    label:            { fontSize: 11, color: t.textMuted },
+    btnPular:         { alignItems: 'center', padding: 12 },
+    btnPularTexto:    { color: t.textDimmer, fontSize: 13 },
+  });
+}

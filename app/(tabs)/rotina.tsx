@@ -1,10 +1,12 @@
-﻿import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { useFocusEffect, router } from 'expo-router';
 import { buscarAtividadesDoDia, deletarAtividade, atualizarAtividade, formatarData, diasDaSemana, aplicarModelosNoDia } from '../../services/rotina';
 import { cancelarLembreteAtividade } from '../../services/notifications';
 import { humorDeHoje } from '../../services/humor';
 import { Atividade, Humor } from '../../types/rotina';
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 function calcularTempoTotal(item: Atividade): string {
   if (item.etapas && item.etapas.length > 0) {
@@ -29,6 +31,9 @@ export default function TelaRotina() {
   const [atividadeExpandida, setAtividadeExpandida] = useState<string | null>(null);
   const dias = diasDaSemana();
   const hoje = formatarData(new Date());
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useFocusEffect(
     useCallback(() => {
@@ -76,7 +81,11 @@ export default function TelaRotina() {
     const novasEtapas = ativ.etapas.map(e =>
       e.id === etapaId ? { ...e, concluida: !e.concluida } : e
     );
-    await atualizarAtividade(atividadeId, { etapas: novasEtapas });
+    const todasConcluidas = novasEtapas.every(e => e.concluida);
+    await atualizarAtividade(atividadeId, {
+      etapas: novasEtapas,
+      ...(todasConcluidas ? { concluida: true } : {}),
+    });
     carregarAtividades(diaSelecionado);
   }
 
@@ -237,52 +246,52 @@ export default function TelaRotina() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:               { flex: 1, backgroundColor: '#0f0f0f', paddingTop: 60 },
-  titulo:                  { fontSize: 28, fontWeight: '300', color: '#fff', marginBottom: 24, paddingHorizontal: 24 },
-  calendario:              { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 24 },
-  diaBtn:                  { alignItems: 'center', padding: 8, borderRadius: 12, minWidth: 40 },
-  diaBtnAtivo:             { backgroundColor: '#fff' },
-  diaBtnHoje:              { borderWidth: 1, borderColor: '#333' },
-  diaSemana:               { fontSize: 10, color: '#555', marginBottom: 4 },
-  diaNumero:               { fontSize: 16, color: '#fff', fontWeight: '300' },
-  diaTextoAtivo:           { color: '#000' },
-  humorCard:               { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24, marginBottom: 16 },
-  humorEmoji:              { fontSize: 24 },
-  humorLabel:              { fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: 1 },
-  humorTexto:              { fontSize: 14, color: '#fff' },
-  lista:                   { paddingHorizontal: 24, paddingBottom: 100 },
-  vazio:                   { color: '#333', fontSize: 14, textAlign: 'center', marginTop: 60, lineHeight: 24 },
-  secaoLabel:              { fontSize: 11, color: '#333', textTransform: 'uppercase', letterSpacing: 1, marginTop: 8, marginBottom: 8, paddingHorizontal: 24 },
-  atividadeCard:           { padding: 16, backgroundColor: '#111', borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#1a1a1a' },
-  atividadeCardConcluida:  { opacity: 0.4 },
-  atividadeCardArrastando: { backgroundColor: '#1a1a1a', borderColor: '#333', opacity: 0.9 },
-  atividadeCardExpandido:  { borderColor: '#333' },
-  atividadeCardLinha:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  atividadeInfo:           { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  dragHandle:              { color: '#333', fontSize: 16, marginRight: 2 },
-  atividadeDot:            { width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' },
-  atividadeDotConcluida:   { backgroundColor: '#333' },
-  atividadeTitulo:         { fontSize: 15, color: '#fff', marginBottom: 2 },
-  atividadeTituloConcluido:{ textDecorationLine: 'line-through', color: '#444' },
-  atividadeDesc:           { fontSize: 12, color: '#555' },
-  modeloBadge:             { fontSize: 10, color: '#444', marginTop: 2 },
-  etapasBadge:             { fontSize: 10, color: '#555', marginTop: 2 },
-  atividadeMeta:           { alignItems: 'flex-end', gap: 4 },
-  atividadeHora:           { fontSize: 13, color: '#888', fontWeight: '300', letterSpacing: 0.5 },
-  atividadeDuracao:        { fontSize: 12, color: '#444' },
-  check:                   { fontSize: 14, color: '#555' },
-  expandirIcon:            { fontSize: 10, color: '#444' },
-  etapasContainer:         { marginTop: 12, borderTopWidth: 1, borderTopColor: '#1a1a1a', paddingTop: 12 },
-  etapaRow:                { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  etapaCheck:              { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
-  etapaCheckConcluida:     { backgroundColor: '#fff', borderColor: '#fff' },
-  etapaCheckTexto:         { fontSize: 12, color: '#000' },
-  etapaTexto:              { fontSize: 13, color: '#fff' },
-  etapaTextoConcluido:     { textDecorationLine: 'line-through', color: '#444' },
-  etapaTempoTexto:         { fontSize: 11, color: '#555', marginTop: 2 },
-  etapaIniciarBtn:         { marginTop: 8, paddingVertical: 8, alignItems: 'center' },
-  etapaIniciarTexto:       { color: '#555', fontSize: 13 },
-  btnAdicionar:            { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  btnAdicionarTexto:       { fontSize: 28, color: '#000', lineHeight: 32 },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:               { flex: 1, backgroundColor: t.bg, paddingTop: 60 },
+    titulo:                  { fontSize: 28, fontWeight: '300', color: t.textPrimary, marginBottom: 24, paddingHorizontal: 24 },
+    calendario:              { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 24 },
+    diaBtn:                  { alignItems: 'center', padding: 8, borderRadius: 12, minWidth: 40 },
+    diaBtnAtivo:             { backgroundColor: t.btnPrimaryBg },
+    diaBtnHoje:              { borderWidth: 1, borderColor: t.borderStrong },
+    diaSemana:               { fontSize: 10, color: t.textMuted, marginBottom: 4 },
+    diaNumero:               { fontSize: 16, color: t.textPrimary, fontWeight: '300' },
+    diaTextoAtivo:           { color: t.btnPrimaryText },
+    humorCard:               { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24, marginBottom: 16 },
+    humorEmoji:              { fontSize: 24 },
+    humorLabel:              { fontSize: 11, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+    humorTexto:              { fontSize: 14, color: t.textPrimary },
+    lista:                   { paddingHorizontal: 24, paddingBottom: 100 },
+    vazio:                   { color: t.textDimmer, fontSize: 14, textAlign: 'center', marginTop: 60, lineHeight: 24 },
+    secaoLabel:              { fontSize: 11, color: t.textDimmer, textTransform: 'uppercase', letterSpacing: 1, marginTop: 8, marginBottom: 8, paddingHorizontal: 24 },
+    atividadeCard:           { padding: 16, backgroundColor: t.card, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: t.border },
+    atividadeCardConcluida:  { opacity: 0.4 },
+    atividadeCardExpandido:  { borderColor: t.borderStrong },
+    atividadeCardLinha:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    atividadeInfo:           { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+    atividadeDot:            { width: 8, height: 8, borderRadius: 4, backgroundColor: t.textPrimary },
+    atividadeDotConcluida:   { backgroundColor: t.textDimmer },
+    atividadeTitulo:         { fontSize: 15, color: t.textPrimary, marginBottom: 2 },
+    atividadeTituloConcluido:{ textDecorationLine: 'line-through', color: t.textFaint },
+    atividadeDesc:           { fontSize: 12, color: t.textMuted },
+    modeloBadge:             { fontSize: 10, color: t.textFaint, marginTop: 2 },
+    etapasBadge:             { fontSize: 10, color: t.textMuted, marginTop: 2 },
+    atividadeMeta:           { alignItems: 'flex-end', gap: 4 },
+    atividadeHora:           { fontSize: 13, color: t.textSecondary, fontWeight: '300', letterSpacing: 0.5 },
+    atividadeDuracao:        { fontSize: 12, color: t.textFaint },
+    check:                   { fontSize: 14, color: t.textMuted },
+    expandirIcon:            { fontSize: 10, color: t.textFaint },
+    etapasContainer:         { marginTop: 12, borderTopWidth: 1, borderTopColor: t.border, paddingTop: 12 },
+    etapaRow:                { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+    etapaCheck:              { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: t.borderStrong, alignItems: 'center', justifyContent: 'center' },
+    etapaCheckConcluida:     { backgroundColor: t.btnPrimaryBg, borderColor: t.btnPrimaryBg },
+    etapaCheckTexto:         { fontSize: 12, color: t.btnPrimaryText },
+    etapaTexto:              { fontSize: 13, color: t.textPrimary },
+    etapaTextoConcluido:     { textDecorationLine: 'line-through', color: t.textFaint },
+    etapaTempoTexto:         { fontSize: 11, color: t.textMuted, marginTop: 2 },
+    etapaIniciarBtn:         { marginTop: 8, paddingVertical: 8, alignItems: 'center' },
+    etapaIniciarTexto:       { color: t.textMuted, fontSize: 13 },
+    btnAdicionar:            { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: t.btnPrimaryBg, alignItems: 'center', justifyContent: 'center' },
+    btnAdicionarTexto:       { fontSize: 28, color: t.btnPrimaryText, lineHeight: 32 },
+  });
+}

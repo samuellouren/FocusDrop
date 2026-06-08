@@ -5,3 +5,4 @@ export const CHAVE_HUMOR = 'humor';
 export const CHAVE_VIBRAR = 'vibrar';
 export const CHAVE_LEMBRETE_ATIVO = 'lembrete_diario_ativo';
 export const CHAVE_LEMBRETE_HORA = 'lembrete_diario_hora';
+export const CHAVE_TEMA = 'tema';

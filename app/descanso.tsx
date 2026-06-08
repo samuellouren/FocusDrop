@@ -1,8 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SUGESTOES_RELAXAMENTO, MENSAGENS_MOTIVACIONAIS } from '../constants/relaxamento';
 import { notificarDescansoConcluido } from '../services/notifications';
+import { useTheme } from '../context/ThemeContext';
+import { Theme } from '../context/ThemeContext';
 
 export default function TelaDescanso() {
   const { duracaoTrabalho } = useLocalSearchParams<{ duracaoTrabalho?: string }>();
@@ -13,6 +15,9 @@ export default function TelaDescanso() {
   const [segundos, setSegundos] = useState(300);
   const [rodando, setRodando] = useState(false);
   const [concluido, setConcluido] = useState(false);
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useFocusEffect(
     useCallback(() => {
@@ -62,7 +67,6 @@ export default function TelaDescanso() {
         <Text style={styles.sugestaoTitulo}>{sugestao.titulo}</Text>
         <Text style={styles.sugestaoDesc}>{sugestao.descricao}</Text>
 
-        {/* timer de descanso */}
         <View style={styles.timerContainer}>
           <View style={styles.timerBarra}>
             <View style={[styles.timerProgresso, { width: `${progresso * 100}%` as any }]} />
@@ -103,23 +107,25 @@ export default function TelaDescanso() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:          { flex: 1, backgroundColor: '#0f0f0f', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  emoji:              { fontSize: 64, marginBottom: 24 },
-  mensagem:           { fontSize: 18, fontWeight: '300', color: '#fff', textAlign: 'center', lineHeight: 28, marginBottom: 40 },
-  sugestaoCard:       { backgroundColor: '#111', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#1a1a1a', width: '100%', marginBottom: 40 },
-  sugestaoTitulo:     { fontSize: 18, color: '#fff', marginBottom: 8 },
-  sugestaoDesc:       { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 16 },
-  timerContainer:     { marginBottom: 12 },
-  timerBarra:         { height: 3, backgroundColor: '#1a1a1a', borderRadius: 2, marginBottom: 8, overflow: 'hidden' },
-  timerProgresso:     { height: 3, backgroundColor: '#fff', borderRadius: 2 },
-  timerDisplay:       { fontSize: 28, fontWeight: '200', color: '#fff', textAlign: 'center', letterSpacing: 2 },
-  btnTimer:           { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
-  btnTimerTexto:      { color: '#888', fontSize: 14 },
-  concluidoTexto:     { color: '#fff', fontSize: 14, textAlign: 'center', marginTop: 8 },
-  botoes:             { width: '100%', gap: 12 },
-  botao:              { backgroundColor: '#fff', padding: 16, borderRadius: 12, alignItems: 'center' },
-  textoBotao:         { color: '#000', fontSize: 16 },
-  botaoSecundario:    { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#222' },
-  textoBotaoSecundario: { color: '#444', fontSize: 16 },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:            { flex: 1, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    emoji:                { fontSize: 64, marginBottom: 24 },
+    mensagem:             { fontSize: 18, fontWeight: '300', color: t.textPrimary, textAlign: 'center', lineHeight: 28, marginBottom: 40 },
+    sugestaoCard:         { backgroundColor: t.card, borderRadius: 16, padding: 24, borderWidth: 1, borderColor: t.border, width: '100%', marginBottom: 40 },
+    sugestaoTitulo:       { fontSize: 18, color: t.textPrimary, marginBottom: 8 },
+    sugestaoDesc:         { fontSize: 14, color: t.textMuted, lineHeight: 22, marginBottom: 16 },
+    timerContainer:       { marginBottom: 12 },
+    timerBarra:           { height: 3, backgroundColor: t.border, borderRadius: 2, marginBottom: 8, overflow: 'hidden' },
+    timerProgresso:       { height: 3, backgroundColor: t.textPrimary, borderRadius: 2 },
+    timerDisplay:         { fontSize: 28, fontWeight: '200', color: t.textPrimary, textAlign: 'center', letterSpacing: 2 },
+    btnTimer:             { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
+    btnTimerTexto:        { color: t.textSecondary, fontSize: 14 },
+    concluidoTexto:       { color: t.textPrimary, fontSize: 14, textAlign: 'center', marginTop: 8 },
+    botoes:               { width: '100%', gap: 12 },
+    botao:                { backgroundColor: t.btnPrimaryBg, padding: 16, borderRadius: 12, alignItems: 'center' },
+    textoBotao:           { color: t.btnPrimaryText, fontSize: 16 },
+    botaoSecundario:      { backgroundColor: 'transparent', borderWidth: 1, borderColor: t.borderAccent },
+    textoBotaoSecundario: { color: t.textFaint, fontSize: 16 },
+  });
+}

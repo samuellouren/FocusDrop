@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ModalHumor } from '../components/ui/ModalHumor';
 import { CHAVE_LEMBRETE_ATIVO, CHAVE_LEMBRETE_HORA } from '../constants/keys';
 import { agendarLembreteDiario } from '../services/notifications';
+import { ThemeProvider } from '../context/ThemeContext';
 
 export default function RootLayout() {
   useEffect(() => {
@@ -17,14 +18,16 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ModalHumor />
-      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="atividade/[id]" />
-        <Stack.Screen name="etapa/[id]" />
-        <Stack.Screen name="descanso" />
-      </Stack>
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ModalHumor />
+        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="atividade/[id]" />
+          <Stack.Screen name="etapa/[id]" />
+          <Stack.Screen name="descanso" />
+        </Stack>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }

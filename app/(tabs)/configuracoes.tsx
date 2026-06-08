@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Switch, ScrollView  } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
@@ -8,7 +8,8 @@ import { TECNICAS } from '../../hooks/useCycle';
 import { Tecnica } from '../../types/session';
 import { salvarMetaMinutos, buscarMetaMinutos } from '../../services/storage';
 import { agendarLembreteDiario, cancelarLembreteDiario } from '../../services/notifications';
-
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 const TECNICA_LABELS: Record<Tecnica, { nome: string; descricao: string }> = {
   'pomodoro': { nome: 'Pomodoro', descricao: 'Ciclos automáticos foco → pausa' },
@@ -37,6 +38,9 @@ export default function TelaConfiguracoes() {
   const [vibrar, setVibrar] = useState(true);
   const [lembreteAtivo, setLembreteAtivo] = useState(false);
   const [lembreteHora, setLembreteHora] = useState(9);
+
+  const { theme, modoEscuro, toggleTema } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useFocusEffect(
     useCallback(() => {
@@ -88,8 +92,23 @@ export default function TelaConfiguracoes() {
   <ScrollView style={styles.container}>
     <Text style={styles.titulo}>Configurações</Text>
 
+    {/* aparência */}
+    <Text style={styles.secao}>Aparência</Text>
+    <View style={styles.toggle}>
+      <View>
+        <Text style={styles.toggleNome}>Modo escuro</Text>
+        <Text style={styles.toggleDesc}>Alterna entre tema claro e escuro</Text>
+      </View>
+      <Switch
+        value={modoEscuro}
+        onValueChange={toggleTema}
+        trackColor={{ false: theme.switchTrackOff, true: theme.switchTrackOff }}
+        thumbColor={modoEscuro ? theme.btnPrimaryBg : theme.btnPrimaryBg}
+      />
+    </View>
+
     {/* técnica padrão */}
-    <Text style={styles.secao}>Técnica padrão</Text>
+    <Text style={[styles.secao, { marginTop: 32 }]}>Técnica padrão</Text>
     <View style={styles.opcoes}>
       {(Object.keys(TECNICA_LABELS) as Tecnica[]).map(t => (
         <TouchableOpacity
@@ -133,8 +152,8 @@ export default function TelaConfiguracoes() {
       <Switch
         value={vibrar}
         onValueChange={v => { setVibrar(v); AsyncStorage.setItem(CHAVE_VIBRAR, String(v)); }}
-        trackColor={{ false: '#1a1a1a', true: '#fff' }}
-        thumbColor={vibrar ? '#000' : '#333'}
+        trackColor={{ false: theme.switchTrackOff, true: theme.switchTrackOff }}
+        thumbColor={vibrar ? theme.btnPrimaryBg : theme.switchThumbInactive}
       />
     </View>
 
@@ -148,8 +167,8 @@ export default function TelaConfiguracoes() {
       <Switch
         value={lembreteAtivo}
         onValueChange={toggleLembrete}
-        trackColor={{ false: '#1a1a1a', true: '#fff' }}
-        thumbColor={lembreteAtivo ? '#000' : '#333'}
+        trackColor={{ false: theme.switchTrackOff, true: theme.switchTrackOff }}
+        thumbColor={lembreteAtivo ? theme.btnPrimaryBg : theme.switchThumbInactive}
       />
     </View>
     {lembreteAtivo && (
@@ -173,27 +192,47 @@ export default function TelaConfiguracoes() {
         </Text>
       </>
     )}
+
+    {/* sobre */}
+    <View style={styles.sobreDivider} />
+
+    <Text style={styles.secao}>Sobre o FocusDrop</Text>
+    <Text style={styles.sobreTexto}>
+      App de foco e bem-estar criado para ajudar na quebra da procrastinação, organização da rotina e cuidado com a saúde mental — com timers inteligentes, rotina diária estruturada e acompanhamento do humor.
+    </Text>
+
+    <Text style={[styles.secao, { marginTop: 24 }]}>Desenvolvido por</Text>
+    <Text style={styles.sobreTexto}>Samuel Lourenço — Engenharia de Software</Text>
+    <Text style={styles.sobreDetalhe}>Papel: Desenvolvedor Full Stack</Text>
+    <Text style={styles.sobreDetalhe}>Stack: React Native · Expo · TypeScript · AsyncStorage · EAS Build</Text>
+
+    <View style={{ height: 48 }} />
   </ScrollView>
 );
 }
 
-const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#0f0f0f', padding: 24, paddingTop: 60 },
-  titulo:         { fontSize: 28, fontWeight: '300', color: '#fff', marginBottom: 32 },
-  secao:          { fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
-  opcoes:         { gap: 8, marginBottom: 32 },
-  opcao:          { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#1a1a1a', backgroundColor: '#111' },
-  opcaoAtiva:     { borderColor: '#fff' },
-  opcaoNome:      { fontSize: 15, color: '#444', marginBottom: 2 },
-  opcaoNomeAtivo: { color: '#fff' },
-  opcaoDesc:      { fontSize: 12, color: '#333' },
-  metaOpcoes:     { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  metaBtn:        { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: '#222' },
-  metaBtnAtivo:   { borderColor: '#fff', backgroundColor: '#1a1a1a' },
-  metaTexto:      { color: '#444', fontSize: 15 },
-  metaTextoAtivo: { color: '#fff' },
-  dica:           { fontSize: 12, color: '#333', marginBottom: 32 },
-  toggle:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#1a1a1a', backgroundColor: '#111' },
-  toggleNome:     { fontSize: 15, color: '#fff', marginBottom: 2 },
-  toggleDesc:     { fontSize: 12, color: '#333' },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:      { flex: 1, backgroundColor: t.bg, padding: 24, paddingTop: 60 },
+    titulo:         { fontSize: 28, fontWeight: '300', color: t.textPrimary, marginBottom: 32 },
+    secao:          { fontSize: 11, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
+    opcoes:         { gap: 8, marginBottom: 32 },
+    opcao:          { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.card },
+    opcaoAtiva:     { borderColor: t.textPrimary },
+    opcaoNome:      { fontSize: 15, color: t.textFaint, marginBottom: 2 },
+    opcaoNomeAtivo: { color: t.textPrimary },
+    opcaoDesc:      { fontSize: 12, color: t.textDimmer },
+    metaOpcoes:     { flexDirection: 'row', gap: 10, marginBottom: 10 },
+    metaBtn:        { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: t.borderAccent },
+    metaBtnAtivo:   { borderColor: t.textPrimary, backgroundColor: t.activeBg },
+    metaTexto:      { color: t.textFaint, fontSize: 15 },
+    metaTextoAtivo: { color: t.textPrimary },
+    dica:           { fontSize: 12, color: t.textDimmer, marginBottom: 32 },
+    toggle:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.card },
+    toggleNome:     { fontSize: 15, color: t.textPrimary, marginBottom: 2 },
+    toggleDesc:     { fontSize: 12, color: t.textDimmer },
+    sobreDivider:   { height: 1, backgroundColor: t.border, marginTop: 40, marginBottom: 32 },
+    sobreTexto:     { fontSize: 13, color: t.textSecondary, lineHeight: 20, marginBottom: 8 },
+    sobreDetalhe:   { fontSize: 12, color: t.textMuted, lineHeight: 18 },
+  });
+}

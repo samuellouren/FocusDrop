@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
@@ -8,6 +8,8 @@ import { TimerRing } from '../../components/ui/TimerRing';
 import { CHAVE_DURACAO_PADRAO } from '../../constants/keys';
 import { Tecnica } from '../../types/session';
 import { pedirPermissao } from '../../services/notifications';
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 const TECNICA_LABELS: Record<Tecnica, string> = {
   'pomodoro': 'Pomodoro',
@@ -34,6 +36,9 @@ export default function TelaFoco() {
   const [segundosPausa, setSegundosPausa] = useState('0');
 
   const { seconds, isRunning, cicloAtual, numeroCiclo, start, pause, reset } = useCycle(config);
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useEffect(() => {
     pedirPermissao();
@@ -119,7 +124,7 @@ export default function TelaFoco() {
               keyboardType="number-pad"
               maxLength={2}
               placeholder="0"
-              placeholderTextColor="#333"
+              placeholderTextColor={theme.textDimmer}
             />
             <Text style={styles.inputSeparador}>h</Text>
             <TextInput
@@ -129,7 +134,7 @@ export default function TelaFoco() {
               keyboardType="number-pad"
               maxLength={2}
               placeholder="25"
-              placeholderTextColor="#333"
+              placeholderTextColor={theme.textDimmer}
             />
             <Text style={styles.inputSeparador}>m</Text>
             <TextInput
@@ -139,7 +144,7 @@ export default function TelaFoco() {
               keyboardType="number-pad"
               maxLength={2}
               placeholder="0"
-              placeholderTextColor="#333"
+              placeholderTextColor={theme.textDimmer}
             />
             <Text style={styles.inputSeparador}>s</Text>
           </View>
@@ -156,7 +161,7 @@ export default function TelaFoco() {
                 keyboardType="number-pad"
                 maxLength={2}
                 placeholder="0"
-                placeholderTextColor="#333"
+                placeholderTextColor={theme.textDimmer}
               />
               <Text style={styles.inputSeparador}>h</Text>
               <TextInput
@@ -166,7 +171,7 @@ export default function TelaFoco() {
                 keyboardType="number-pad"
                 maxLength={2}
                 placeholder="5"
-                placeholderTextColor="#333"
+                placeholderTextColor={theme.textDimmer}
               />
               <Text style={styles.inputSeparador}>m</Text>
               <TextInput
@@ -176,7 +181,7 @@ export default function TelaFoco() {
                 keyboardType="number-pad"
                 maxLength={2}
                 placeholder="0"
-                placeholderTextColor="#333"
+                placeholderTextColor={theme.textDimmer}
               />
               <Text style={styles.inputSeparador}>s</Text>
             </View>
@@ -196,7 +201,8 @@ export default function TelaFoco() {
         <TimerRing
           seconds={seconds}
           totalSeconds={totalSegundos}
-          cor={cicloAtual === 'foco' ? '#ffffff' : '#555555'}
+          trackColor={theme.timerTrack}
+          cor={cicloAtual === 'foco' ? theme.textPrimary : theme.textMuted}
         />
         <Text style={styles.timer}>{display}</Text>
       </View>
@@ -219,26 +225,28 @@ export default function TelaFoco() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:          { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f0f0f', padding: 24 },
-  tecnicas:           { flexDirection: 'row', gap: 8, marginBottom: 24 },
-  tecnicaBtn:         { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: '#222' },
-  tecnicaBtnAtivo:    { borderColor: '#fff', backgroundColor: '#1a1a1a' },
-  tecnicaTexto:       { color: '#444', fontSize: 13 },
-  tecnicaTextoAtivo:  { color: '#fff' },
-  inputContainer:     { flexDirection: 'row', gap: 24, marginBottom: 20 },
-  inputGrupo:         { alignItems: 'center', gap: 6 },
-  inputLabel:         { fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: 1 },
-  inputRow:           { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  input:              { width: 44, height: 44, backgroundColor: '#111', borderRadius: 8, borderWidth: 1, borderColor: '#222', color: '#fff', fontSize: 18, textAlign: 'center', textAlignVertical: 'center' },
-  inputSeparador:     { color: '#333', fontSize: 16 },
-  cicloInfo:          { marginBottom: 16 },
-  cicloTexto:         { color: '#555', fontSize: 13 },
-  timerContainer:     { width: 280, height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 48 },
-  timer:              { fontSize: 64, fontWeight: '200', color: '#fff', letterSpacing: 4, position: 'absolute' },
-  controles:          { flexDirection: 'row', gap: 16 },
-  botao:              { paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#333' },
-  botaoPrimario:      { backgroundColor: '#fff', borderColor: '#fff' },
-  textoBotao:         { color: '#888', fontSize: 16 },
-  textoBotaoPrimario: { color: '#000' },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:          { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, padding: 24 },
+    tecnicas:           { flexDirection: 'row', gap: 8, marginBottom: 24 },
+    tecnicaBtn:         { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: t.borderAccent },
+    tecnicaBtnAtivo:    { borderColor: t.textPrimary, backgroundColor: t.activeBg },
+    tecnicaTexto:       { color: t.textFaint, fontSize: 13 },
+    tecnicaTextoAtivo:  { color: t.textPrimary },
+    inputContainer:     { flexDirection: 'row', gap: 24, marginBottom: 20 },
+    inputGrupo:         { alignItems: 'center', gap: 6 },
+    inputLabel:         { fontSize: 11, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+    inputRow:           { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    input:              { width: 44, height: 44, backgroundColor: t.card, borderRadius: 8, borderWidth: 1, borderColor: t.borderAccent, color: t.textPrimary, fontSize: 18, textAlign: 'center', textAlignVertical: 'center' },
+    inputSeparador:     { color: t.textDimmer, fontSize: 16 },
+    cicloInfo:          { marginBottom: 16 },
+    cicloTexto:         { color: t.textMuted, fontSize: 13 },
+    timerContainer:     { width: 280, height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 48 },
+    timer:              { fontSize: 64, fontWeight: '200', color: t.textPrimary, letterSpacing: 4, position: 'absolute' },
+    controles:          { flexDirection: 'row', gap: 16 },
+    botao:              { paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: t.borderStrong },
+    botaoPrimario:      { backgroundColor: t.btnPrimaryBg, borderColor: t.btnPrimaryBg },
+    textoBotao:         { color: t.textSecondary, fontSize: 16 },
+    textoBotaoPrimario: { color: t.btnPrimaryText },
+  });
+}

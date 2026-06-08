@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from 'expo-router';
@@ -7,6 +7,8 @@ import { buscarSessoes, calcularStreak, minutosHoje, buscarMetaMinutos } from '.
 import { humoresDaSemana } from '../../services/humor';
 import { Session } from '../../types/session';
 import { Humor } from '../../types/rotina';
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -17,6 +19,9 @@ export default function TelaEstatisticas() {
   const [minutosDeHoje, setMinutosDeHoje] = useState(0);
   const [metaMinutos, setMetaMinutos] = useState(120);
   const [humores, setHumores] = useState<Humor[]>([]);
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,12 +90,14 @@ export default function TelaEstatisticas() {
             width={340} height={200}
             yAxisLabel="" yAxisSuffix=""
             chartConfig={{
-              backgroundColor: '#0f0f0f',
-              backgroundGradientFrom: '#0f0f0f',
-              backgroundGradientTo: '#0f0f0f',
+              backgroundColor: theme.bg,
+              backgroundGradientFrom: theme.bg,
+              backgroundGradientTo: theme.bg,
               decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: () => '#555',
+              color: (opacity = 1) => theme.isDark
+                ? `rgba(255, 255, 255, ${opacity})`
+                : `rgba(0, 0, 0, ${opacity})`,
+              labelColor: () => theme.textMuted,
               barPercentage: 0.6,
             }}
             style={{ borderRadius: 12 }}
@@ -137,28 +144,30 @@ export default function TelaEstatisticas() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: '#0f0f0f', padding: 24, paddingTop: 60 },
-  titulo:           { fontSize: 28, fontWeight: '300', color: '#fff', marginBottom: 32 },
-  cards:            { flexDirection: 'row', gap: 12, marginBottom: 32 },
-  card:             { flex: 1, backgroundColor: '#111', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#1a1a1a' },
-  cardDestaque:     { borderColor: '#fff' },
-  cardValor:        { fontSize: 28, fontWeight: '200', color: '#fff' },
-  cardLabel:        { fontSize: 12, color: '#555', marginTop: 4, marginBottom: 8 },
-  progressoFundo:   { width: '100%', height: 3, backgroundColor: '#1a1a1a', borderRadius: 2 },
-  progressoBarra:   { height: 3, backgroundColor: '#fff', borderRadius: 2 },
-  secaoTitulo:      { fontSize: 11, color: '#555', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  graficoContainer: { marginBottom: 32, alignItems: 'center' },
-  vazio:            { color: '#333', fontSize: 14, textAlign: 'center', marginTop: 20, marginBottom: 32 },
-  diasContainer:    { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
-  diaItem:          { alignItems: 'center', gap: 6 },
-  diaCirculo:       { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center' },
-  diaCirculoAtivo:  { backgroundColor: '#fff', borderColor: '#fff' },
-  diaTexto:         { fontSize: 10, color: '#444' },
-  diaTextoAtivo:    { color: '#000' },
-  diaContagem:      { fontSize: 11, color: '#555', height: 16 },
-  humorSemana:      { flexDirection: 'row', gap: 16, marginBottom: 40, flexWrap: 'wrap' },
-  humorItem:        { alignItems: 'center', gap: 4 },
-  humorEmoji:       { fontSize: 28 },
-  humorData:        { fontSize: 11, color: '#555' },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:        { flex: 1, backgroundColor: t.bg, padding: 24, paddingTop: 60 },
+    titulo:           { fontSize: 28, fontWeight: '300', color: t.textPrimary, marginBottom: 32 },
+    cards:            { flexDirection: 'row', gap: 12, marginBottom: 32 },
+    card:             { flex: 1, backgroundColor: t.card, borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+    cardDestaque:     { borderColor: t.textPrimary },
+    cardValor:        { fontSize: 28, fontWeight: '200', color: t.textPrimary },
+    cardLabel:        { fontSize: 12, color: t.textMuted, marginTop: 4, marginBottom: 8 },
+    progressoFundo:   { width: '100%', height: 3, backgroundColor: t.border, borderRadius: 2 },
+    progressoBarra:   { height: 3, backgroundColor: t.textPrimary, borderRadius: 2 },
+    secaoTitulo:      { fontSize: 11, color: t.textMuted, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
+    graficoContainer: { marginBottom: 32, alignItems: 'center' },
+    vazio:            { color: t.textDimmer, fontSize: 14, textAlign: 'center', marginTop: 20, marginBottom: 32 },
+    diasContainer:    { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 40 },
+    diaItem:          { alignItems: 'center', gap: 6 },
+    diaCirculo:       { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    diaCirculoAtivo:  { backgroundColor: t.btnPrimaryBg, borderColor: t.btnPrimaryBg },
+    diaTexto:         { fontSize: 10, color: t.textFaint },
+    diaTextoAtivo:    { color: t.btnPrimaryText },
+    diaContagem:      { fontSize: 11, color: t.textMuted, height: 16 },
+    humorSemana:      { flexDirection: 'row', gap: 16, marginBottom: 40, flexWrap: 'wrap' },
+    humorItem:        { alignItems: 'center', gap: 4 },
+    humorEmoji:       { fontSize: 28 },
+    humorData:        { fontSize: 11, color: t.textMuted },
+  });
+}

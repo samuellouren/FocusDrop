@@ -3,11 +3,16 @@ import { useCallback, useState, useMemo } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { buscarSessoes, calcularStreak } from '../../services/storage';
 import { Session } from '../../types/session';
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 type Grupo = [string, Session[]];
 
 export default function TelaHistorico() {
   const [sessoes, setSessoes] = useState<Session[]>([]);
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   useFocusEffect(
     useCallback(() => {
@@ -132,34 +137,36 @@ export default function TelaHistorico() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: '#0f0f0f', paddingTop: 60, paddingHorizontal: 24 },
-  titulo:          { fontSize: 28, fontWeight: '300', color: '#fff', marginBottom: 24 },
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:       { flex: 1, backgroundColor: t.bg, paddingTop: 60, paddingHorizontal: 24 },
+    titulo:          { fontSize: 28, fontWeight: '300', color: t.textPrimary, marginBottom: 24 },
 
-  resumoCard:      { flexDirection: 'row', backgroundColor: '#111', borderRadius: 16, borderWidth: 1, borderColor: '#1a1a1a', padding: 20, marginBottom: 28, justifyContent: 'space-around', alignItems: 'center' },
-  resumoItem:      { alignItems: 'center' },
-  resumoValor:     { fontSize: 20, fontWeight: '300', color: '#fff', marginBottom: 2 },
-  resumoLabel:     { fontSize: 10, color: '#555', textTransform: 'uppercase', letterSpacing: 1 },
-  resumoDivider:   { width: 1, height: 32, backgroundColor: '#1a1a1a' },
+    resumoCard:      { flexDirection: 'row', backgroundColor: t.card, borderRadius: 16, borderWidth: 1, borderColor: t.border, padding: 20, marginBottom: 28, justifyContent: 'space-around', alignItems: 'center' },
+    resumoItem:      { alignItems: 'center' },
+    resumoValor:     { fontSize: 20, fontWeight: '300', color: t.textPrimary, marginBottom: 2 },
+    resumoLabel:     { fontSize: 10, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+    resumoDivider:   { width: 1, height: 32, backgroundColor: t.border },
 
-  grupo:           { marginBottom: 24 },
-  grupoHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  grupoData:       { fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: 1 },
-  grupoTotal:      { fontSize: 12, color: '#555' },
+    grupo:           { marginBottom: 24 },
+    grupoHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    grupoData:       { fontSize: 12, color: t.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
+    grupoTotal:      { fontSize: 12, color: t.textMuted },
 
-  sessaoRow:       { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#111', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#161616' },
-  sessaoRowUltima: { borderBottomWidth: 0, borderBottomLeftRadius: 12, borderBottomRightRadius: 12 },
+    sessaoRow:       { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: t.border },
+    sessaoRowUltima: { borderBottomWidth: 0, borderBottomLeftRadius: 12, borderBottomRightRadius: 12 },
 
-  badge:           { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  badgePomodoro:   { backgroundColor: '#1a1208' },
-  badgeFoco:       { backgroundColor: '#0d1a1a' },
-  badgeTexto:      { fontSize: 10, color: '#666', letterSpacing: 0.5 },
+    badge:           { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+    badgePomodoro:   { backgroundColor: t.activeBg },
+    badgeFoco:       { backgroundColor: t.activeBg },
+    badgeTexto:      { fontSize: 10, color: t.textMuted, letterSpacing: 0.5 },
 
-  sessaoDuracao:   { fontSize: 16, fontWeight: '300', color: '#fff', flex: 1 },
-  sessaoHora:      { fontSize: 13, color: '#444' },
+    sessaoDuracao:   { fontSize: 16, fontWeight: '300', color: t.textPrimary, flex: 1 },
+    sessaoHora:      { fontSize: 13, color: t.textFaint },
 
-  vazioContainer:  { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: -60 },
-  vazioIcon:       { fontSize: 48, marginBottom: 16 },
-  vazio:           { fontSize: 16, color: '#444', marginBottom: 8 },
-  vazioSub:        { fontSize: 13, color: '#2a2a2a', textAlign: 'center' },
-});
+    vazioContainer:  { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: -60 },
+    vazioIcon:       { fontSize: 48, marginBottom: 16 },
+    vazio:           { fontSize: 16, color: t.textFaint, marginBottom: 8 },
+    vazioSub:        { fontSize: 13, color: t.textDimmer, textAlign: 'center' },
+  });
+}

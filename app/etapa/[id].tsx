@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCycle, ConfigCiclo } from '../../hooks/useCycle';
 import { TimerRing } from '../../components/ui/TimerRing';
 import { buscarAtividades, atualizarAtividade } from '../../services/rotina';
 import { Atividade, Etapa } from '../../types/rotina';
+import { useTheme } from '../../context/ThemeContext';
+import { Theme } from '../../context/ThemeContext';
 
 export default function TelaEtapa() {
   const { id, atividadeId } = useLocalSearchParams<{ id: string; atividadeId: string }>();
@@ -24,6 +26,9 @@ export default function TelaEtapa() {
   });
 
   const { seconds, isRunning, cicloAtual, numeroCiclo, start, pause, reset } = useCycle(config);
+
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const hasRunRef = useRef(false);
   const concludedRef = useRef(false);
@@ -81,7 +86,11 @@ export default function TelaEtapa() {
     const novasEtapas = atividade.etapas?.map(e =>
       e.id === etapa.id ? { ...e, concluida: true } : e
     );
-    await atualizarAtividade(atividade.id, { etapas: novasEtapas });
+    const todasConcluidas = novasEtapas?.every(e => e.concluida) ?? false;
+    await atualizarAtividade(atividade.id, {
+      etapas: novasEtapas,
+      ...(todasConcluidas ? { concluida: true } : {}),
+    });
     const duracaoSeg = etapa.duracao ?? totalSegundos;
     router.replace(`/descanso?duracaoTrabalho=${duracaoSeg}`);
   }
@@ -129,7 +138,12 @@ export default function TelaEtapa() {
             {cicloAtual === 'foco' ? '🎯 Foco' : '☕ Pausa'} · Ciclo {numeroCiclo}
           </Text>
           <View style={styles.timerContainer}>
-            <TimerRing seconds={seconds} totalSeconds={totalSegundos} cor="#ffffff" />
+            <TimerRing
+              seconds={seconds}
+              totalSeconds={totalSegundos}
+              trackColor={theme.timerTrack}
+              cor={theme.textPrimary}
+            />
             <Text style={styles.timer}>{display}</Text>
           </View>
           <View style={styles.controles}>
@@ -154,21 +168,23 @@ export default function TelaEtapa() {
   );
 }
 
-const styles = StyleSheet.create({
-  container:          { flex: 1, backgroundColor: '#0f0f0f', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  btnVoltar:          { position: 'absolute', top: 60, left: 24 },
-  btnVoltarTexto:     { color: '#555', fontSize: 14 },
-  atividadeNome:      { fontSize: 13, color: '#444', marginBottom: 8 },
-  titulo:             { fontSize: 28, fontWeight: '300', color: '#fff', textAlign: 'center', marginBottom: 8 },
-  meta:               { fontSize: 13, color: '#555' },
-  cicloTexto:         { color: '#555', fontSize: 13, marginBottom: 16 },
-  timerContainer:     { width: 280, height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 32 },
-  timer:              { fontSize: 64, fontWeight: '200', color: '#fff', letterSpacing: 4, position: 'absolute' },
-  controles:          { flexDirection: 'row', gap: 16, marginBottom: 32 },
-  btnConcluir:        { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#333', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
-  btnConcluirTexto:   { color: '#fff', fontSize: 16 },
-  botao:              { paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#333' },
-  botaoPrimario:      { backgroundColor: '#fff', borderColor: '#fff' },
-  textoBotao:         { color: '#888', fontSize: 16 },
-  textoBotaoPrimario: { color: '#000' },
-});
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:          { flex: 1, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', padding: 24 },
+    btnVoltar:          { position: 'absolute', top: 60, left: 24 },
+    btnVoltarTexto:     { color: t.textMuted, fontSize: 14 },
+    atividadeNome:      { fontSize: 13, color: t.textFaint, marginBottom: 8 },
+    titulo:             { fontSize: 28, fontWeight: '300', color: t.textPrimary, textAlign: 'center', marginBottom: 8 },
+    meta:               { fontSize: 13, color: t.textMuted },
+    cicloTexto:         { color: t.textMuted, fontSize: 13, marginBottom: 16 },
+    timerContainer:     { width: 280, height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 32 },
+    timer:              { fontSize: 64, fontWeight: '200', color: t.textPrimary, letterSpacing: 4, position: 'absolute' },
+    controles:          { flexDirection: 'row', gap: 16, marginBottom: 32 },
+    btnConcluir:        { backgroundColor: t.activeBg, borderWidth: 1, borderColor: t.borderStrong, paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
+    btnConcluirTexto:   { color: t.textPrimary, fontSize: 16 },
+    botao:              { paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: t.borderStrong },
+    botaoPrimario:      { backgroundColor: t.btnPrimaryBg, borderColor: t.btnPrimaryBg },
+    textoBotao:         { color: t.textSecondary, fontSize: 16 },
+    textoBotaoPrimario: { color: t.btnPrimaryText },
+  });
+}

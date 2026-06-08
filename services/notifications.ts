@@ -79,9 +79,9 @@ export async function agendarLembreteDiario(hora: number, minuto: number): Promi
       sound: true,
     },
     trigger: {
+      type: 'daily',
       hour: hora,
       minute: minuto,
-      repeats: true,
     },
   });
 }
@@ -102,7 +102,7 @@ export async function agendarLembreteAtividade(
   await Notifications.scheduleNotificationAsync({
     identifier: `atividade_${id}`,
     content: { title: '⏰ Hora de começar!', body: titulo, sound: true },
-    trigger: { date: trigger },
+    trigger: { type: 'date', date: trigger },
   });
 }
 

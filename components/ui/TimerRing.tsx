@@ -4,10 +4,11 @@ type Props = {
   seconds: number;
   totalSeconds: number;
   size?: number;
-  cor?: string; // cor do anel — branco no foco, cinza na pausa
+  cor?: string;
+  trackColor?: string;
 }
 
-export function TimerRing({ seconds, totalSeconds, size = 280, cor = '#ffffff' }: Props) {
+export function TimerRing({ seconds, totalSeconds, size = 280, cor = '#ffffff', trackColor = '#1a1a1a' }: Props) {
     const espessura = 4
     const raio = (size - espessura) / 2;
     const circunferencia = 2 * Math.PI * raio;
@@ -22,7 +23,7 @@ export function TimerRing({ seconds, totalSeconds, size = 280, cor = '#ffffff' }
                 cx={size/2}
                 cy={size/2}
                 r={raio}
-                stroke="#1a1a1a"
+                stroke={trackColor}
                 strokeWidth={espessura}
                 fill="none"
             />
