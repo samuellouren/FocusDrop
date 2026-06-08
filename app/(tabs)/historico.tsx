@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState, useMemo } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { buscarSessoes } from '../../services/storage';
+import { buscarSessoes, calcularStreak } from '../../services/storage';
 import { Session } from '../../types/session';
 
 type Grupo = [string, Session[]];
@@ -25,21 +25,7 @@ export default function TelaHistorico() {
     return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
   }, [sessoes]);
 
-  const streak = useMemo(() => {
-    const dias = new Set(sessoes.map(s => s.completedAt.slice(0, 10)));
-    if (dias.size === 0) return 0;
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const toStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const cursor = new Date();
-    if (!dias.has(toStr(cursor))) cursor.setDate(cursor.getDate() - 1);
-    if (!dias.has(toStr(cursor))) return 0;
-    let count = 0;
-    while (dias.has(toStr(cursor))) {
-      count++;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    return count;
-  }, [sessoes]);
+  const streak = useMemo(() => calcularStreak(sessoes), [sessoes]);
 
   function formatarDia(isoDate: string): string {
     const data = new Date(isoDate + 'T12:00:00');

@@ -47,28 +47,19 @@ export function minutosHoje(sessoes: Session[]): number {
 
 export function calcularStreak(sessoes: Session[]): number {
   if (sessoes.length === 0) return 0;
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  let streak = 0;
-  let diaVerificando = new Date(hoje);
-
-  while (true) {
-    // verifica se tem alguma sessão nesse dia
-    const temSessao = sessoes.some(s => {
-      const data = new Date(s.completedAt);
-      data.setHours(0, 0, 0, 0);
-      return data.getTime() === diaVerificando.getTime();
-    });
-
-    if (!temSessao) break;
-
-    streak++;
-    diaVerificando.setDate(diaVerificando.getDate() - 1);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const toStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const dias = new Set(sessoes.map(s => s.completedAt.slice(0, 10)));
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  if (!dias.has(toStr(cursor))) cursor.setDate(cursor.getDate() - 1);
+  if (!dias.has(toStr(cursor))) return 0;
+  let count = 0;
+  while (dias.has(toStr(cursor))) {
+    count++;
+    cursor.setDate(cursor.getDate() - 1);
   }
-
-  return streak;
+  return count;
 }
 
 export function sessoesHoje(sessoes: Session[]): number {
