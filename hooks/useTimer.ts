@@ -22,7 +22,7 @@ export function useTimer(initialSeconds: number) {
           setIsRunning(false);
           salvarSessao(initialSeconds)
             .catch(err => console.error('erro ao salvar:', err));
-          notificarSessaoCompleta(Math.floor(initialSeconds / 60))
+          notificarSessaoCompleta(initialSeconds)
             .catch(err => console.error('erro na notificação:', err));
           return 0;
         }

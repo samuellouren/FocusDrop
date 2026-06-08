@@ -1,12 +1,12 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { buscarSessoes, calcularStreak, minutosHoje, buscarMetaMinutos } from '../services/storage';
-import { humoresDaSemana } from '../services/humor';
-import { Session } from '../types/session';
-import { Humor } from '../types/rotina';
+import { buscarSessoes, calcularStreak, minutosHoje, buscarMetaMinutos } from '../../services/storage';
+import { humoresDaSemana } from '../../services/humor';
+import { Session } from '../../types/session';
+import { Humor } from '../../types/rotina';
 
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 

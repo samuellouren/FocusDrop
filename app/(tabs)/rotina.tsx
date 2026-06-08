@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+﻿import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { useFocusEffect, router } from 'expo-router';
-import { buscarAtividadesDoDia, deletarAtividade, atualizarAtividade, formatarData, diasDaSemana, aplicarModelosNoDia } from '../services/rotina';
-import { humorDeHoje } from '../services/humor';
-import { Atividade, Humor } from '../types/rotina';
+import { buscarAtividadesDoDia, deletarAtividade, atualizarAtividade, formatarData, diasDaSemana, aplicarModelosNoDia } from '../../services/rotina';
+import { cancelarLembreteAtividade } from '../../services/notifications';
+import { humorDeHoje } from '../../services/humor';
+import { Atividade, Humor } from '../../types/rotina';
 
 function calcularTempoTotal(item: Atividade): string {
   if (item.etapas && item.etapas.length > 0) {
@@ -60,6 +61,7 @@ export default function TelaRotina() {
           text: 'Remover',
           style: 'destructive',
           onPress: async () => {
+            await cancelarLembreteAtividade(item.id);
             await deletarAtividade(item.id);
             carregarAtividades(diaSelecionado);
           },
@@ -98,6 +100,7 @@ export default function TelaRotina() {
             </View>
           </View>
           <View style={styles.atividadeMeta}>
+            {item.horaInicio && <Text style={styles.atividadeHora}>{item.horaInicio}</Text>}
             <Text style={styles.atividadeDuracao}>{calcularTempoTotal(item)}</Text>
             {item.concluida && <Text style={styles.check}>✓</Text>}
             {item.etapas && item.etapas.length > 0 && !item.concluida && (
@@ -266,6 +269,7 @@ const styles = StyleSheet.create({
   modeloBadge:             { fontSize: 10, color: '#444', marginTop: 2 },
   etapasBadge:             { fontSize: 10, color: '#555', marginTop: 2 },
   atividadeMeta:           { alignItems: 'flex-end', gap: 4 },
+  atividadeHora:           { fontSize: 13, color: '#888', fontWeight: '300', letterSpacing: 0.5 },
   atividadeDuracao:        { fontSize: 12, color: '#444' },
   check:                   { fontSize: 14, color: '#555' },
   expandirIcon:            { fontSize: 10, color: '#444' },

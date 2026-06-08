@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCycle, TECNICAS, ConfigCiclo } from '../hooks/useCycle';
-import { TimerRing } from '../components/ui/TimerRing';
-import { CHAVE_DURACAO_PADRAO } from '../constants/keys';
-import { Tecnica } from '../types/session';
-import { pedirPermissao } from '../services/notifications';
+import { useCycle, TECNICAS, ConfigCiclo } from '../../hooks/useCycle';
+import { TimerRing } from '../../components/ui/TimerRing';
+import { CHAVE_DURACAO_PADRAO } from '../../constants/keys';
+import { Tecnica } from '../../types/session';
+import { pedirPermissao } from '../../services/notifications';
 
 const TECNICA_LABELS: Record<Tecnica, string> = {
   'pomodoro': 'Pomodoro',

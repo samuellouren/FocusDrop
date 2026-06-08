@@ -12,6 +12,7 @@ export type Atividade = {
   ordem: number;
   ehModelo?: boolean;
   etapas?: Etapa[];
+  horaInicio?: string; // "HH:MM"
 };
 export type Humor = {
   id: string;

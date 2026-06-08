@@ -1,31 +1,45 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SUGESTOES_RELAXAMENTO, MENSAGENS_MOTIVACIONAIS } from '../constants/relaxamento';
+import { notificarDescansoConcluido } from '../services/notifications';
 
 export default function TelaDescanso() {
-  const [sugestao] = useState(() => {
-    const idx = Math.floor(Math.random() * SUGESTOES_RELAXAMENTO.length);
-    return SUGESTOES_RELAXAMENTO[idx];
-  });
+  const { duracaoTrabalho } = useLocalSearchParams<{ duracaoTrabalho?: string }>();
 
-  const [mensagem] = useState(() => {
-    const idx = Math.floor(Math.random() * MENSAGENS_MOTIVACIONAIS.length);
-    return MENSAGENS_MOTIVACIONAIS[idx];
-  });
-
-  // converte "5 min" → 300 segundos
-  const duracaoSegundos = parseInt(sugestao.duracao) * 60;
-
-  const [segundos, setSegundos] = useState(duracaoSegundos);
+  const [sugestao, setSugestao] = useState(SUGESTOES_RELAXAMENTO[0]);
+  const [mensagem, setMensagem] = useState(MENSAGENS_MOTIVACIONAIS[0]);
+  const [duracaoSegundos, setDuracaoSegundos] = useState(300);
+  const [segundos, setSegundos] = useState(300);
   const [rodando, setRodando] = useState(false);
   const [concluido, setConcluido] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const idx = Math.floor(Math.random() * SUGESTOES_RELAXAMENTO.length);
+      const s = SUGESTOES_RELAXAMENTO[idx];
+      const msgIdx = Math.floor(Math.random() * MENSAGENS_MOTIVACIONAIS.length);
+
+      const trabalhoSeg = duracaoTrabalho ? parseInt(duracaoTrabalho) : 0;
+      const d = trabalhoSeg > 0
+        ? Math.min(600, Math.max(60, Math.round(trabalhoSeg / 5)))
+        : parseInt(s.duracao) * 60;
+
+      setSugestao(s);
+      setMensagem(MENSAGENS_MOTIVACIONAIS[msgIdx]);
+      setDuracaoSegundos(d);
+      setSegundos(d);
+      setRodando(false);
+      setConcluido(false);
+    }, [duracaoTrabalho])
+  );
 
   useEffect(() => {
     if (!rodando) return;
     if (segundos <= 0) {
       setRodando(false);
       setConcluido(true);
+      notificarDescansoConcluido().catch(console.error);
       return;
     }
     const interval = setInterval(() => {

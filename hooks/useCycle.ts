@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import { Tecnica, Ciclo } from '../types/session';
 import { salvarSessao } from '../services/storage';
-import { notificarSessaoCompleta } from '../services/notifications';
+import { notificarSessaoCompleta, notificarPausaConcluida } from '../services/notifications';
 import {
   iniciarNotificacaoPersistente,
   atualizarNotificacaoPersistente,
@@ -88,8 +88,10 @@ export function useCycle(config: ConfigCiclo) {
     if (Platform.OS !== 'web') deactivateKeepAwake();
     if (cicloAtual === 'foco') {
       salvarSessao(totalSegundosFoco, config.tecnica).catch(console.error);
-      notificarSessaoCompleta(Math.floor(totalSegundosFoco / 60)).catch(console.error);
+      notificarSessaoCompleta(totalSegundosFoco).catch(console.error);
       setNumeroCiclo(n => n + 1);
+    } else {
+      notificarPausaConcluida().catch(console.error);
     }
   }
 

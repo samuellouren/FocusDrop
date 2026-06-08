@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCycle, ConfigCiclo } from '../../hooks/useCycle';
@@ -25,6 +25,9 @@ export default function TelaEtapa() {
 
   const { seconds, isRunning, cicloAtual, numeroCiclo, start, pause, reset } = useCycle(config);
 
+  const hasRunRef = useRef(false);
+  const concludedRef = useRef(false);
+
   useEffect(() => {
     carregarEtapa();
   }, [id]);
@@ -34,6 +37,23 @@ export default function TelaEtapa() {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
     return () => sub.remove();
   }, [modoExecucao]);
+
+  useEffect(() => {
+    if (isRunning) hasRunRef.current = true;
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (
+      !hasRunRef.current ||
+      concludedRef.current ||
+      seconds !== 0 ||
+      isRunning ||
+      !modoExecucao ||
+      !etapa?.temTimer
+    ) return;
+    concludedRef.current = true;
+    handleConcluir();
+  }, [seconds, isRunning, modoExecucao, etapa, atividade]);
 
   async function carregarEtapa() {
     const todas = await buscarAtividades();
@@ -62,7 +82,8 @@ export default function TelaEtapa() {
       e.id === etapa.id ? { ...e, concluida: true } : e
     );
     await atualizarAtividade(atividade.id, { etapas: novasEtapas });
-    router.replace('/descanso');
+    const duracaoSeg = etapa.duracao ?? totalSegundos;
+    router.replace(`/descanso?duracaoTrabalho=${duracaoSeg}`);
   }
 
   const mins = Math.floor(seconds / 60);

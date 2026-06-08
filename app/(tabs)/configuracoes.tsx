@@ -1,12 +1,13 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Switch, ScrollView  } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { CHAVE_DURACAO_PADRAO, CHAVE_VIBRAR } from '../constants/keys';
-import { TECNICAS } from '../hooks/useCycle';
-import { Tecnica } from '../types/session';
-import { salvarMetaMinutos, buscarMetaMinutos } from '../services/storage';
+import { CHAVE_DURACAO_PADRAO, CHAVE_VIBRAR, CHAVE_LEMBRETE_ATIVO, CHAVE_LEMBRETE_HORA } from '../../constants/keys';
+import { TECNICAS } from '../../hooks/useCycle';
+import { Tecnica } from '../../types/session';
+import { salvarMetaMinutos, buscarMetaMinutos } from '../../services/storage';
+import { agendarLembreteDiario, cancelarLembreteDiario } from '../../services/notifications';
 
 
 const TECNICA_LABELS: Record<Tecnica, { nome: string; descricao: string }> = {
@@ -21,10 +22,21 @@ const METAS_MINUTOS = [
   { label: '4h',   valor: 240 },
 ];
 
+const HORAS_LEMBRETE = [
+  { label: '7h',  hora: 7  },
+  { label: '8h',  hora: 8  },
+  { label: '9h',  hora: 9  },
+  { label: '12h', hora: 12 },
+  { label: '18h', hora: 18 },
+  { label: '20h', hora: 20 },
+];
+
 export default function TelaConfiguracoes() {
   const [tecnicaPadrao, setTecnicaPadrao] = useState<Tecnica>('pomodoro');
   const [metaMinutos, setMetaMinutos] = useState(120);
   const [vibrar, setVibrar] = useState(true);
+  const [lembreteAtivo, setLembreteAtivo] = useState(false);
+  const [lembreteHora, setLembreteHora] = useState(9);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,6 +46,12 @@ export default function TelaConfiguracoes() {
       buscarMetaMinutos().then(setMetaMinutos);
       AsyncStorage.getItem(CHAVE_VIBRAR).then(valor => {
         if (valor !== null) setVibrar(valor === 'true');
+      });
+      AsyncStorage.getItem(CHAVE_LEMBRETE_ATIVO).then(valor => {
+        setLembreteAtivo(valor === 'true');
+      });
+      AsyncStorage.getItem(CHAVE_LEMBRETE_HORA).then(valor => {
+        if (valor !== null) setLembreteHora(parseInt(valor));
       });
     }, [])
   );
@@ -46,6 +64,24 @@ export default function TelaConfiguracoes() {
   async function salvarMeta(minutos: number) {
     setMetaMinutos(minutos);
     await salvarMetaMinutos(minutos);
+  }
+
+  async function toggleLembrete(ativo: boolean) {
+    setLembreteAtivo(ativo);
+    await AsyncStorage.setItem(CHAVE_LEMBRETE_ATIVO, String(ativo));
+    if (ativo) {
+      await agendarLembreteDiario(lembreteHora, 0);
+    } else {
+      await cancelarLembreteDiario();
+    }
+  }
+
+  async function salvarHoraLembrete(hora: number) {
+    setLembreteHora(hora);
+    await AsyncStorage.setItem(CHAVE_LEMBRETE_HORA, String(hora));
+    if (lembreteAtivo) {
+      await agendarLembreteDiario(hora, 0);
+    }
   }
 
   return (
@@ -101,6 +137,42 @@ export default function TelaConfiguracoes() {
         thumbColor={vibrar ? '#000' : '#333'}
       />
     </View>
+
+    {/* lembrete diário */}
+    <Text style={[styles.secao, { marginTop: 32 }]}>Lembrete diário</Text>
+    <View style={styles.toggle}>
+      <View>
+        <Text style={styles.toggleNome}>Lembrete de foco</Text>
+        <Text style={styles.toggleDesc}>Notificação diária para não esquecer</Text>
+      </View>
+      <Switch
+        value={lembreteAtivo}
+        onValueChange={toggleLembrete}
+        trackColor={{ false: '#1a1a1a', true: '#fff' }}
+        thumbColor={lembreteAtivo ? '#000' : '#333'}
+      />
+    </View>
+    {lembreteAtivo && (
+      <>
+        <Text style={[styles.secao, { marginTop: 16 }]}>Horário do lembrete</Text>
+        <View style={styles.metaOpcoes}>
+          {HORAS_LEMBRETE.map(h => (
+            <TouchableOpacity
+              key={h.hora}
+              style={[styles.metaBtn, lembreteHora === h.hora && styles.metaBtnAtivo]}
+              onPress={() => salvarHoraLembrete(h.hora)}
+            >
+              <Text style={[styles.metaTexto, lembreteHora === h.hora && styles.metaTextoAtivo]}>
+                {h.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={styles.dica}>
+          Você receberá um lembrete todos os dias às {lembreteHora}h00
+        </Text>
+      </>
+    )}
   </ScrollView>
 );
 }

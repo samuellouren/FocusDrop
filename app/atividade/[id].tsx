@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCycle, TECNICAS, ConfigCiclo } from '../../hooks/useCycle';
 import { TimerRing } from '../../components/ui/TimerRing';
 import { salvarAtividade, atualizarAtividade, buscarAtividades } from '../../services/rotina';
+import { agendarLembreteAtividade, cancelarLembreteAtividade } from '../../services/notifications';
 import { Atividade, Etapa } from '../../types/rotina';
 import { Tecnica } from '../../types/session';
 
@@ -24,6 +25,8 @@ export default function TelaAtividade() {
   const [novaEtapaTemTimer, setNovaEtapaTemTimer] = useState(false);
   const [novaEtapaMinutos, setNovaEtapaMinutos] = useState('5');
   const [novaEtapaSegundos, setNovaEtapaSegundos] = useState('0');
+  const [horaH, setHoraH] = useState('');
+  const [horaM, setHoraM] = useState('');
 
   const [atividade, setAtividade] = useState<Atividade | null>(null);
   const [modoExecucao, setModoExecucao] = useState(false);
@@ -57,6 +60,11 @@ export default function TelaAtividade() {
           setSegundosFoco(String(found.duracao % 60));
         }
         if (found.tecnica) setTecnica(found.tecnica);
+        if (found.horaInicio) {
+          const [h, m] = found.horaInicio.split(':');
+          setHoraH(h);
+          setHoraM(m);
+        }
       }
       if (found.temTimer && found.duracao) {
         const cfg: ConfigCiclo = {
@@ -98,6 +106,15 @@ export default function TelaAtividade() {
   async function handleSalvar() {
     if (!titulo.trim()) return;
     const duracao = (Number(minutosFoco) * 60) + Number(segundosFoco);
+    let horaInicio: string | undefined;
+    if (horaH.trim()) {
+      const h = Math.min(23, Math.max(0, parseInt(horaH) || 0));
+      const m = Math.min(59, Math.max(0, parseInt(horaM) || 0));
+      horaInicio = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    let savedId: string;
+    let savedData: string;
 
     if (isEditar && atividade) {
       await atualizarAtividade(atividade.id, {
@@ -108,9 +125,11 @@ export default function TelaAtividade() {
         tecnica: temTimer ? tecnica : undefined,
         ehModelo,
         etapas: etapas.length > 0 ? etapas : undefined,
+        horaInicio,
       });
+      savedId = atividade.id;
+      savedData = atividade.data;
     } else {
-      console.log('[Atividade] params recebidos → id:', id, 'data:', data, 'ordem:', ordem);
       const novaAtividade: Atividade = {
         id: Date.now().toString(),
         titulo: titulo.trim(),
@@ -123,12 +142,19 @@ export default function TelaAtividade() {
         ordem: Number(ordem),
         ehModelo,
         etapas: etapas.length > 0 ? etapas : undefined,
+        horaInicio,
       };
-      console.log('[Atividade] salvando:', JSON.stringify({ id: novaAtividade.id, data: novaAtividade.data, titulo: novaAtividade.titulo }));
       await salvarAtividade(novaAtividade);
-      console.log('[Atividade] salvo com sucesso');
+      savedId = novaAtividade.id;
+      savedData = data as string;
     }
-    router.navigate('/rotina');
+
+    await cancelarLembreteAtividade(savedId);
+    if (horaInicio && savedData) {
+      agendarLembreteAtividade(savedId, titulo.trim(), savedData, horaInicio).catch(console.error);
+    }
+
+    router.back();
   }
 
   async function handleConcluir() {
@@ -208,6 +234,13 @@ export default function TelaAtividade() {
 
       <Text style={styles.label}>Título</Text>
       <TextInput style={styles.inputTexto} value={titulo} onChangeText={setTitulo} placeholder="Ex: Estudar React Native" placeholderTextColor="#333" />
+
+      <Text style={styles.label}>Horário (opcional)</Text>
+      <View style={styles.inputRow}>
+        <TextInput style={styles.inputNumero} value={horaH} onChangeText={setHoraH} keyboardType="number-pad" maxLength={2} placeholder="09" placeholderTextColor="#333" />
+        <Text style={styles.inputSep}>:</Text>
+        <TextInput style={styles.inputNumero} value={horaM} onChangeText={setHoraM} keyboardType="number-pad" maxLength={2} placeholder="00" placeholderTextColor="#333" />
+      </View>
 
       <Text style={styles.label}>Descrição (opcional)</Text>
       <TextInput style={[styles.inputTexto, styles.inputArea]} value={descricao} onChangeText={setDescricao} placeholder="Detalhes da atividade..." placeholderTextColor="#333" multiline />

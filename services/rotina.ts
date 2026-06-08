@@ -36,7 +36,12 @@ export async function buscarAtividadesDoDia(data: string): Promise<Atividade[]> 
   const todas = await buscarAtividades();
   return todas
     .filter(a => a.data === data)
-    .sort((a, b) => a.ordem - b.ordem);
+    .sort((a, b) => {
+      if (a.horaInicio && b.horaInicio) return a.horaInicio.localeCompare(b.horaInicio);
+      if (a.horaInicio) return -1;
+      if (b.horaInicio) return 1;
+      return a.ordem - b.ordem;
+    });
 }
 
 // salva uma nova atividade
